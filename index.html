@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rifa Jhon Andrade</title>
+
+  <!-- Importar fuente Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: "Poppins", Arial, sans-serif;
+      background: linear-gradient(135deg, #f3f4f6, #e0f7fa);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+      text-align: center;
+    }
+
+    /* Estilo del título */
+    h1 {
+      color: #1e293b;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+
+    /* Estilo del texto descriptivo */
+    p {
+      color: #334155;
+      font-size: 1rem;
+      max-width: 650px;
+      background-color: #ffffffd9;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      line-height: 1.6;
+    }
+
+    #container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+      gap: 10px;
+      max-width: 800px;
+      width: 100%;
+      margin-top: 25px;
+    }
+
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .libre {
+      background-color: #4ade80;
+      color: #fff;
+    }
+
+    .ocupado {
+      background-color: #ef4444;
+      color: #fff;
+    }
+
+    .acciones {
+      margin-top: 25px;
+    }
+
+    .acciones button {
+      background-color: #22c55e;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+    }
+
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+
+    #modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+    }
+
+    #modal-content input {
+      width: 90%;
+      padding: 8px;
+      margin: 8px 0;
+    }
+
+    #modal-content button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 ¡Tu diciembre más sabroso! 🎄</h1>
+  <p><strong>Compra tu boleta y gánate un CHIVO 🐐</strong><br>
+     Juega el <b>02/12/2025</b> con <b>Lotería Sinuano Noche</b><br><br>
+     💰 <b>Valor:</b> $10.000
+  </p>
+
+  <div id="container"></div>
+
+  <div class="acciones">
+    <button id="descargar" class="descargar">📥 Descargar Lista</button>
+  </div>
+
+  <div id="modal">
+    <div id="modal-content">
+      <h3 id="modal-titulo">Datos del comprador</h3>
+      <p id="numSeleccionado"></p>
+      <input type="text" id="nombre" placeholder="Nombre" required />
+      <input type="text" id="telefono" placeholder="Teléfono" required />
+      <div id="botonesModal">
+        <button id="guardar">Guardar</button>
+        <button id="editar" style="display:none;">Actualizar</button>
+        <button id="eliminar" style="display:none; background-color:#f87171;">Eliminar</button>
+        <button id="cancelar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const totalNumeros = 100;
+    const container = document.getElementById('container');
+    const modal = document.getElementById('modal');
+    const numSeleccionado = document.getElementById('numSeleccionado');
+    const nombreInput = document.getElementById('nombre');
+    const telefonoInput = document.getElementById('telefono');
+    const modalTitulo = document.getElementById('modal-titulo');
+    const guardarBtn = document.getElementById('guardar');
+    const editarBtn = document.getElementById('editar');
+    const eliminarBtn = document.getElementById('eliminar');
+    const estadoRifa = JSON.parse(localStorage.getItem('estadoRifa')) || {};
+    let numeroActual = null;
+
+    function guardarDatos() {
+      const nombre = nombreInput.value.trim();
+      const telefono = telefonoInput.value.trim();
+      if (!nombre || !telefono) {
+        alert('Por favor completa todos los campos');
+        return;
+      }
+      estadoRifa[numeroActual] = { nombre, telefono };
+      localStorage.setItem('estadoRifa', JSON.stringify(estadoRifa));
+      location.reload();
+    }
+
+    function eliminarNumero() {
+      if (confirm(`¿Deseas liberar el número ${numeroActual}?`)) {
+        delete estadoRifa[numeroActual];
+        localStorage.setItem('estadoRifa', JSON.stringify(estadoRifa));
+        location.reload();
+      }
+    }
+
+    for (let i = 1; i <= totalNumeros; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = i;
+      const datos = estadoRifa[i];
+      if (datos) {
+        btn.className = 'ocupado';
+        btn.title = `${datos.nombre} (${datos.telefono})`;
+      } else {
+        btn.className = 'libre';
+      }
+
+      btn.addEventListener('click', () => {
+        numeroActual = i;
+        numSeleccionado.textContent = `Número: ${i}`;
+        if (estadoRifa[i]) {
+          modalTitulo.textContent = "Información del comprador";
+          nombreInput.value = estadoRifa[i].nombre;
+          telefonoInput.value = estadoRifa[i].telefono;
+          guardarBtn.style.display = "none";
+          editarBtn.style.display = "inline-block";
+          eliminarBtn.style.display = "inline-block";
+        } else {
+          modalTitulo.textContent = "Nuevo comprador";
+          nombreInput.value = "";
+          telefonoInput.value = "";
+          guardarBtn.style.display = "inline-block";
+          editarBtn.style.display = "none";
+          eliminarBtn.style.display = "none";
+        }
+        modal.style.display = 'flex';
+      });
+
+      container.appendChild(btn);
+    }
+
+    guardarBtn.addEventListener('click', guardarDatos);
+    editarBtn.addEventListener('click', guardarDatos);
+    eliminarBtn.addEventListener('click', eliminarNumero);
+    document.getElementById('cancelar').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    document.getElementById('descargar').addEventListener('click', () => {
+      const vendidos = Object.entries(estadoRifa);
+      if (vendidos.length === 0) {
+        alert("No hay números vendidos para exportar.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Número,Nombre,Teléfono\n";
+      vendidos.forEach(([numero, datos]) => {
+        csvContent += `${numero},${datos.nombre},${datos.telefono}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "rifa.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  </script>
+</body>
+</html>
